@@ -11,24 +11,30 @@ import kotlinx.coroutines.launch
 import retrofit2.Response
 
 class MapViewModel(private val repository: RestaurantsRepository) : ViewModel() {
-    private val _restaurantsList = MutableLiveData<ArrayList<Restaurant>>()
-    val restaurants: LiveData<ArrayList<Restaurant>>
-        get() = _restaurantsList
+    private val restaurantsList = MutableLiveData<ArrayList<Restaurant>>()
 
-    fun getRestaurants() {
+    init {
+        loadRestaurants()
+    }
+
+    private fun loadRestaurants() {
         viewModelScope.launch {
             try {
                 val res: Response<RestaurantsResponse> = repository.getRestaurants()
                 if (res.isSuccessful) {
-                    _restaurantsList.postValue(res.body()!!.response.venues)
+                    restaurantsList.postValue(res.body()!!.response.venues)
                 } else {
                     //TODO handle failure
-                    _restaurantsList.postValue(null)
+                    restaurantsList.postValue(null)
                 }
             } catch (e: Exception) {
                 //TODO handle failure
-                _restaurantsList.postValue(null)
+                restaurantsList.postValue(null)
             }
         }
+    }
+
+    fun getRestaurants(): LiveData<ArrayList<Restaurant>> {
+        return restaurantsList
     }
 }

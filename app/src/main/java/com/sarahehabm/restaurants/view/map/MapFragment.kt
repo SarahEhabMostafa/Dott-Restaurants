@@ -8,8 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -21,6 +21,7 @@ import com.sarahehabm.restaurants.model.Restaurant
 import com.sarahehabm.restaurants.model.RestaurantsRepository
 import com.sarahehabm.restaurants.model.getNetworkService
 import com.sarahehabm.restaurants.viewmodel.MapViewModel
+import com.sarahehabm.restaurants.viewmodel.MapViewModelFactory
 import kotlinx.android.synthetic.main.map_fragment.view.*
 
 class MapFragment : Fragment(), OnMapReadyCallback {
@@ -30,6 +31,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private lateinit var viewModel: MapViewModel
+    private lateinit var viewModelFactory: MapViewModelFactory
     private lateinit var googleMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var lastLocation: Location? = null
@@ -44,27 +46,30 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             .findFragmentById(com.sarahehabm.restaurants.R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        view.button_show_restaurants.setOnClickListener { Log.v("Location", if(lastLocation == null) "NULL" else lastLocation.toString()) }
+        val repository = RestaurantsRepository(getNetworkService())
+        viewModelFactory = MapViewModelFactory(repository)
+        viewModel = ViewModelProviders.of(this, viewModelFactory)
+            .get(MapViewModel::class.java)
+
+        view.button_show_restaurants.setOnClickListener {
+            Log.v("Location", if (lastLocation == null) "NULL" else lastLocation.toString())
+        }
 
         return view
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        val repo = RestaurantsRepository(getNetworkService())
-        viewModel = MapViewModel(repo)
-        viewModel.restaurants.observe(activity as LifecycleOwner,
+        viewModel.getRestaurants().observe(viewLifecycleOwner,
             Observer<ArrayList<Restaurant>> { value ->
-                Log.v("RESPONSE", "Size= " + value.isEmpty())
+                Log.v("RESPONSE", "Empty list? " + value.isEmpty())
                 Toast.makeText(
                     context, "List received with size ${value.size}",
                     Toast.LENGTH_LONG
                 ).show()
             }
         )
-
-        viewModel.getRestaurants()
     }
 
     override fun onMapReady(map: GoogleMap) {
@@ -78,7 +83,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(context!!)
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            if(location != null) {
+            if (location != null) {
                 lastLocation = location
                 val currentLatLng = LatLng(location.latitude, location.longitude)
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
