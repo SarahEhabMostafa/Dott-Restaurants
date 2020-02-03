@@ -21,6 +21,7 @@ class MainActivity : AppCompatActivity() {
                 .replace(com.sarahehabm.restaurants.R.id.container, MapFragment.newInstance())
                 .commitNow()
         }
+        setSupportActionBar(toolbar)
 
         button_settings.setOnClickListener { getLocationPermission() }
 
@@ -36,6 +37,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getLocationPermission() {
+        isPermissionGranted = false
         if (ContextCompat.checkSelfPermission(
                 this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION
