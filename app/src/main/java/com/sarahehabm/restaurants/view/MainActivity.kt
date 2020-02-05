@@ -1,11 +1,13 @@
 package com.sarahehabm.restaurants.view
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.sarahehabm.restaurants.R
 import com.sarahehabm.restaurants.view.map.MapFragment
 import kotlinx.android.synthetic.main.main_activity.*
 
@@ -18,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(com.sarahehabm.restaurants.R.layout.main_activity)
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                .replace(com.sarahehabm.restaurants.R.id.container, MapFragment.newInstance())
+                .replace(R.id.container, MapFragment.newInstance())
                 .commitNow()
         }
         setSupportActionBar(toolbar)
@@ -76,5 +78,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        val frg = supportFragmentManager.findFragmentById(R.id.container)
+        frg?.onActivityResult(requestCode, resultCode, data)
     }
 }
