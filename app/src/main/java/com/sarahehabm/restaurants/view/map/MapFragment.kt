@@ -33,6 +33,7 @@ import com.sarahehabm.restaurants.model.RestaurantsRepository
 import com.sarahehabm.restaurants.model.getNetworkService
 import com.sarahehabm.restaurants.viewmodel.MapViewModel
 import com.sarahehabm.restaurants.viewmodel.MapViewModelFactory
+import java.util.*
 
 class MapFragment : Fragment(), OnMapReadyCallback {
 
@@ -117,12 +118,16 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     override fun onMapReady(map: GoogleMap) {
-        googleMap = map
         map.mapType = GoogleMap.MAP_TYPE_NORMAL
 
         map.uiSettings.isZoomControlsEnabled = true
         map.uiSettings.isZoomGesturesEnabled = true
         map.uiSettings.isScrollGesturesEnabled = true
+        map.uiSettings.isCompassEnabled = true
+        map.uiSettings.isRotateGesturesEnabled = true
+        map.isMyLocationEnabled = true
+
+        googleMap = map
     }
 
     private fun initializeLocationServices() {
@@ -226,6 +231,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         if (requestCode == requestCheckSettingsId) {
             if (resultCode != Activity.RESULT_OK) {
                 Toast.makeText(context, getString(R.string.locate_error), Toast.LENGTH_SHORT).show()
+                hideLoader()
             }
         }
     }
