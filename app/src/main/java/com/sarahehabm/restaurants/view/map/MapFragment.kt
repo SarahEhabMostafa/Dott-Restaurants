@@ -90,6 +90,25 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     Toast.LENGTH_SHORT
                 ).show()
 
+                if(value != null) {
+                    for (restaurant in value) {
+                        val latLng = LatLng(
+                            restaurant.location.lat.toDouble(),
+                            restaurant.location.lng.toDouble()
+                        )
+                        val snippet = String.format(
+                            Locale.getDefault(),
+                            "Lat: %1$.5f, Long: %2$.5f",
+                            latLng.latitude,
+                            latLng.longitude
+                        )
+                        googleMap?.addMarker(
+                            MarkerOptions().position(latLng)
+                                .title(restaurant.name).snippet(snippet)
+                        )
+                    }
+                }
+
                 hideLoader()
             }
         )
