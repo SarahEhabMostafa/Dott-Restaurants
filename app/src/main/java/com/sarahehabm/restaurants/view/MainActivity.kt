@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity() {
 
         when (requestCode) {
             requestId -> {
-                if (grantResults.isNotEmpty() && grantResults.get(0) == PackageManager.PERMISSION_GRANTED)
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
                     isPermissionGranted = true
             }
         }
@@ -76,6 +76,9 @@ class MainActivity : AppCompatActivity() {
             container.visibility = View.GONE
             group.visibility = View.VISIBLE
         }
+
+        val frg = supportFragmentManager.findFragmentById(R.id.container)
+        frg?.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }

@@ -25,6 +25,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.tasks.Task
 import com.sarahehabm.restaurants.R
 import com.sarahehabm.restaurants.databinding.MapFragmentBinding
@@ -44,9 +45,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var binding: MapFragmentBinding
     private lateinit var viewModel: MapViewModel
     private lateinit var viewModelFactory: MapViewModelFactory
-    private lateinit var googleMap: GoogleMap
-    private lateinit var buttonLocate: ImageButton
-    private lateinit var loader: ProgressBar
+    private var googleMap: GoogleMap? = null
+    private var buttonLocate: ImageButton? = null
+    private var loader: ProgressBar? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var lastLocation: Location? = null
     private lateinit var locationCallback: LocationCallback
@@ -125,7 +126,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         map.uiSettings.isScrollGesturesEnabled = true
         map.uiSettings.isCompassEnabled = true
         map.uiSettings.isRotateGesturesEnabled = true
-        map.isMyLocationEnabled = true
+        if(isLocationPermissionGranted())
+            map.isMyLocationEnabled = true
 
         googleMap = map
     }
@@ -156,7 +158,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun zoomToLocation() {
-        googleMap.animateCamera(
+        googleMap?.animateCamera(
             CameraUpdateFactory.newLatLngZoom(
                 LatLng(
                     lastLocation!!.latitude,
@@ -178,7 +180,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         val menuLayout = menuItem.actionView
 
         buttonLocate = menuLayout.findViewById(R.id.button_locate)
-        buttonLocate.setOnClickListener {
+        buttonLocate?.setOnClickListener {
             if (!isLocationPermissionGranted()) {
                 requestLocationPermission()
             } else {
@@ -237,12 +239,27 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun showLoader() {
-        loader.visibility = View.VISIBLE
-        buttonLocate.visibility = View.GONE
+        loader?.visibility = View.VISIBLE
+        buttonLocate?.visibility = View.GONE
     }
 
     private fun hideLoader() {
-        loader.visibility = View.GONE
-        buttonLocate.visibility = View.VISIBLE
+        loader?.visibility = View.GONE
+        buttonLocate?.visibility = View.VISIBLE
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        when (requestCode) {
+            requestLocationId -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (googleMap != null)
+                        googleMap?.isMyLocationEnabled = true
+                }
+            }
+        }
     }
 }
