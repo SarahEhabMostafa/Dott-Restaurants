@@ -1,24 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/bottomsheet_parent"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:layout_marginTop="?actionBarSize"
     android:background="@android:color/white"
+    android:clickable="true"
+    android:focusable="true"
+    android:padding="@dimen/margin_16"
     app:behavior_hideable="true"
-    app:behavior_peekHeight="@dimen/dimen_72"
+    app:behavior_peekHeight="@dimen/bottom_sheet_peek_height"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
     <TextView
         android:id="@+id/textView_name"
+        style="@style/TextView_TitleStyle"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center|top"
-        android:textStyle="bold"
-        android:textColor="@color/colorPrimary"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/margin_16"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        tools:text="Name" />
+
+    <TextView
+        android:id="@+id/textView_location"
+        style="@style/TextView_NormalStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="@+id/textView_name"
+        app:layout_constraintHorizontal_bias="0.05"
+        app:layout_constraintStart_toStartOf="@+id/textView_name"
+        app:layout_constraintTop_toBottomOf="@+id/textView_name"
+        app:layout_constraintVertical_bias="0.10"
+        tools:text="Location" />
+
+    <TextView
+        android:id="@+id/textView_address"
+        style="@style/TextView_NormalStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/textView_location"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/textView_location"
+        app:layout_constraintTop_toBottomOf="@+id/textView_location"
+        app:layout_constraintVertical_bias="0.02"
+        tools:text="Full Address" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

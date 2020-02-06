@@ -75,6 +75,12 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.getSelectedRestaurant().observe(this, Observer { restaurant ->
             textView_name.text = restaurant.name
+            textView_address.text = restaurant.location.formattedAddress.toString()
+            textView_location.text = getString(
+                R.string.latlng_formatted,
+                restaurant.location.lat,
+                restaurant.location.lng
+            )
             bottomsheet_behavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
         })
     }
