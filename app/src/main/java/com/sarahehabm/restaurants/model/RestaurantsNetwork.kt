@@ -8,6 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 
+const val SEARCH_INTENT = "browse"
 const val CLIENT_ID = "XLOLYTGNGMOITN2BNJSOH4XWGF4ETG3HTSIXBXQDBBBOEJXN"
 const val CLIENT_SECRET = "0OFBFJTGNR35AK1SC0G4JRPM5BPNJSGEW25T0E4Q20OWHXYQ"
 const val VERSION = "20200201"
@@ -37,6 +38,9 @@ interface RestaurantsNetwork {
     @GET("venues/search")
     suspend fun getRestaurants(
         @Query("ll") ll: String,
+        @Query("sw") sw: String,
+        @Query("ne") ne: String,
+        @Query("intent") intent: String = SEARCH_INTENT,
         @Query("client_id") clientId: String = CLIENT_ID,
         @Query("client_secret") clientSecret: String = CLIENT_SECRET,
         @Query("v") v: String = VERSION,

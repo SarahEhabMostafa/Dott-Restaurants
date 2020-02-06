@@ -1,6 +1,7 @@
 package com.sarahehabm.restaurants.view.map
 
 import android.content.IntentSender
+import android.location.Location
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
@@ -27,7 +28,8 @@ import com.sarahehabm.restaurants.model.Restaurant
 import com.sarahehabm.restaurants.view.MainActivity
 import com.sarahehabm.restaurants.viewmodel.MapViewModel
 
-class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener,
+    GoogleMap.OnCameraIdleListener {
 
     companion object {
         fun newInstance() = MapFragment()
@@ -74,11 +76,6 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
                             restaurant.location.lat.toDouble(),
                             restaurant.location.lng.toDouble()
                         )
-                        val snippet = String.format(
-                            "Lat: %1$.5f, Long: %2$.5f",
-                            latLng.latitude,
-                            latLng.longitude
-                        )
 
                         val marker = googleMap?.addMarker(
                             MarkerOptions().position(latLng)
@@ -105,15 +102,18 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-                viewModel?.setLastLocation(locationResult.locations[0])
 
-                zoomToLocation()
+                zoomToLocation(locationResult.locations[0].latitude, locationResult.locations[0].longitude)
                 showLoader()
             }
         }
 
         viewModel?.getLastLocation()?.observe(viewLifecycleOwner, Observer { t ->
-            viewModel?.loadRestaurants("${t.latitude},${t.longitude}")
+            viewModel?.loadRestaurants(
+                "${t.latitude},${t.longitude}",
+                sw = viewModel?.getSWString()!!,
+                ne = viewModel?.getNEString()!!
+            )
         })
 
         viewModel?.isLocationPermissionGranted()?.
@@ -143,6 +143,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
         googleMap = map
 
         googleMap?.setOnMarkerClickListener(this)
+        googleMap?.setOnCameraIdleListener(this)
     }
 
     private fun initializeLocationServices() {
@@ -170,12 +171,10 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
         }
     }
 
-    private fun zoomToLocation() {
+    private fun zoomToLocation(lat: Double, lng: Double) {
         googleMap?.animateCamera(
             CameraUpdateFactory.newLatLngZoom(
-                LatLng(
-                    viewModel?.getLastLocation()?.value?.latitude!!,
-                    viewModel?.getLastLocation()?.value?.longitude!!
+                LatLng(lat, lng
                 ), 15f
             )
         )
@@ -249,5 +248,31 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
         viewModel?.setSelectedRestaurant(restaurant)
 
         return false
+    }
+
+    override fun onCameraIdle() {
+        Log.i("MAP", "Map is now settled with a center of " + googleMap?.cameraPosition?.target)
+//        Toast.makeText(
+//            context,
+//            "Map is now settled with a center of " + googleMap?.cameraPosition?.target,
+//            Toast.LENGTH_SHORT
+//        ).show()
+
+        val loc = Location("")
+        loc.latitude = googleMap?.cameraPosition?.target?.latitude!!
+        loc.longitude = googleMap?.cameraPosition?.target?.longitude!!
+
+        val sw = Location("")
+        sw.latitude = googleMap?.projection?.visibleRegion?.latLngBounds?.southwest?.latitude!!
+        sw.longitude = googleMap?.projection?.visibleRegion?.latLngBounds?.southwest?.longitude!!
+
+
+        val ne = Location("")
+        ne.latitude = googleMap?.projection?.visibleRegion?.latLngBounds?.northeast?.latitude!!
+        ne.longitude = googleMap?.projection?.visibleRegion?.latLngBounds?.northeast?.longitude!!
+
+        viewModel?.setSW(sw)
+        viewModel?.setNE(ne)
+        viewModel?.setLastLocation(loc)
     }
 }

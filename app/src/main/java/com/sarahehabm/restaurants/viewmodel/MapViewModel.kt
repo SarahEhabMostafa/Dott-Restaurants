@@ -11,24 +11,32 @@ import com.sarahehabm.restaurants.model.RestaurantsResponse
 import kotlinx.coroutines.launch
 import retrofit2.Response
 
-class MapViewModel(private val repository: RestaurantsRepository, ll: String) : ViewModel() {
+class MapViewModel(private val repository: RestaurantsRepository, ll: String, sw: String, ne: String) : ViewModel() {
     private var restaurantsList = MutableLiveData<ArrayList<Restaurant>>()
 
     private var _selectedRestaurant = MutableLiveData<Restaurant>()
-    private var _lastLocation = MutableLiveData<Location>()
+    private var _location = MutableLiveData<Location>()
+    private var _sw = MutableLiveData<Location>()
+    private var _ne = MutableLiveData<Location>()
     private var _isLocationPermissionGranted = MutableLiveData<Boolean>()
     private var _isLocationSettingsEnabled = MutableLiveData<Boolean>()
 
-    init {
-        loadRestaurants(ll)
-    }
-
-    fun loadRestaurants(ll: String) {
+    fun loadRestaurants(ll: String, sw: String, ne: String) {
         viewModelScope.launch {
             try {
-                val res: Response<RestaurantsResponse> = repository.getRestaurants(ll)
+                val res: Response<RestaurantsResponse> = repository.getRestaurants(ll, sw, ne)
                 if (res.isSuccessful) {
-                    restaurantsList.postValue(res.body()!!.response.venues)
+                    val tmpList =  res.body()!!.response.venues
+                    if(restaurantsList.value == null){
+                        restaurantsList.value = tmpList
+                    } else {
+                        for (restaurant in tmpList) {
+                            when(restaurantsList.value?.contains(restaurant)){
+                                false -> restaurantsList.value!!.add(restaurant)
+                            }
+                        }
+                    }
+                    restaurantsList.postValue(restaurantsList.value)
                 } else {
                     //TODO handle failure
                     restaurantsList.postValue(restaurantsList.value)
@@ -44,9 +52,21 @@ class MapViewModel(private val repository: RestaurantsRepository, ll: String) : 
         return restaurantsList
     }
 
-    fun getLastLocation(): LiveData<Location> = _lastLocation
+    fun getLastLocation(): LiveData<Location> = _location
     fun setLastLocation(location: Location) {
-        _lastLocation.value = location
+        _location.value = location
+    }
+
+    fun getSW(): LiveData<Location> = _sw
+    fun getSWString(): String = "${_sw.value?.longitude},${_sw.value?.latitude}"
+    fun setSW(location: Location) {
+        _sw.value = location
+    }
+
+    fun getNE(): LiveData<Location> = _ne
+    fun getNEString(): String = "${_ne.value?.longitude},${_ne.value?.latitude}"
+    fun setNE(location: Location) {
+        _ne.value = location
     }
 
     fun getSelectedRestaurant(): LiveData<Restaurant> = _selectedRestaurant

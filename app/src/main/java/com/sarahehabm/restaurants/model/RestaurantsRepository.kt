@@ -4,6 +4,6 @@ import retrofit2.Response
 
 class RestaurantsRepository(private val network: RestaurantsNetwork) {
 
-    suspend fun getRestaurants(ll:String) : Response<RestaurantsResponse>
-            = network.getRestaurants(ll=ll)
+    suspend fun getRestaurants(ll: String, sw: String, ne: String): Response<RestaurantsResponse> =
+        network.getRestaurants(ll = ll, sw = sw, ne = ne)
 }
