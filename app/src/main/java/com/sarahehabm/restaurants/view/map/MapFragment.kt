@@ -1,10 +1,6 @@
 package com.sarahehabm.restaurants.view.map
 
-import android.app.Activity
-import android.content.Intent
 import android.content.IntentSender
-import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
@@ -13,8 +9,6 @@ import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -25,31 +19,25 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.tasks.Task
 import com.sarahehabm.restaurants.R
-import com.sarahehabm.restaurants.databinding.MapFragmentBinding
 import com.sarahehabm.restaurants.model.Restaurant
-import com.sarahehabm.restaurants.model.RestaurantsRepository
-import com.sarahehabm.restaurants.model.getNetworkService
+import com.sarahehabm.restaurants.view.MainActivity
 import com.sarahehabm.restaurants.viewmodel.MapViewModel
-import com.sarahehabm.restaurants.viewmodel.MapViewModelFactory
-import java.util.*
 
-class MapFragment : Fragment(), OnMapReadyCallback {
+class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     companion object {
         fun newInstance() = MapFragment()
     }
 
-    private lateinit var binding: MapFragmentBinding
-    private lateinit var viewModel: MapViewModel
-    private lateinit var viewModelFactory: MapViewModelFactory
+    private var viewModel: MapViewModel? = null
     private var googleMap: GoogleMap? = null
     private var buttonLocate: ImageButton? = null
     private var loader: ProgressBar? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-    private var lastLocation: Location? = null
     private lateinit var locationCallback: LocationCallback
     private val locationRequest: LocationRequest = LocationRequest.create().apply {
         interval = 5000
@@ -57,31 +45,21 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
 
-    private val requestLocationId = 12
-    private val requestCheckSettingsId = 13
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = DataBindingUtil
-            .inflate(inflater, R.layout.map_fragment, container, false)
+        val root = inflater.inflate(R.layout.map_fragment, container, false)
         setHasOptionsMenu(true)
 
         val mapFragment = childFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        val repository = RestaurantsRepository(getNetworkService())
-        viewModelFactory = MapViewModelFactory(repository)
-        viewModel = ViewModelProviders.of(this, viewModelFactory)
-            .get(MapViewModel::class.java)
-
-        binding.mapViewModel = viewModel
-        binding.lifecycleOwner = viewLifecycleOwner
+        viewModel = activity?.let { ViewModelProviders.of(it).get(MapViewModel::class.java) }
 
         var size: Int
-        binding.mapViewModel?.getRestaurants()?.observe(viewLifecycleOwner,
+        viewModel?.getRestaurants()?.observe(viewLifecycleOwner,
             Observer<ArrayList<Restaurant>> { value ->
                 Log.v("RESPONSE", "Empty list? " + (value?.isEmpty() ?: "null"))
                 size = value?.size ?: 0
@@ -97,15 +75,16 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                             restaurant.location.lng.toDouble()
                         )
                         val snippet = String.format(
-                            Locale.getDefault(),
                             "Lat: %1$.5f, Long: %2$.5f",
                             latLng.latitude,
                             latLng.longitude
                         )
-                        googleMap?.addMarker(
+
+                        val marker = googleMap?.addMarker(
                             MarkerOptions().position(latLng)
-                                .title(restaurant.name).snippet(snippet)
                         )
+
+                        marker?.tag = restaurant
                     }
                 }
 
@@ -126,15 +105,30 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-                lastLocation = locationResult.locations[0]
+                viewModel?.setLastLocation(locationResult.locations[0])
 
                 zoomToLocation()
                 showLoader()
-                viewModel.loadRestaurants("${lastLocation?.latitude},${lastLocation?.longitude}")
             }
         }
 
-        return binding.root
+        viewModel?.getLastLocation()?.observe(viewLifecycleOwner, Observer { t ->
+            viewModel?.loadRestaurants("${t.latitude},${t.longitude}")
+        })
+
+        viewModel?.isLocationPermissionGranted()?.
+            observe(viewLifecycleOwner, Observer { isGranted ->
+                if(isGranted && googleMap!=null)
+                    googleMap?.isMyLocationEnabled = true
+            })
+
+        viewModel?.isLocationSettingsEnabled()?.observe(viewLifecycleOwner, Observer { isEnabled ->
+            if(!isEnabled) {
+                hideLoader()
+            }
+        })
+
+        return root
     }
 
     override fun onMapReady(map: GoogleMap) {
@@ -145,10 +139,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         map.uiSettings.isScrollGesturesEnabled = true
         map.uiSettings.isCompassEnabled = true
         map.uiSettings.isRotateGesturesEnabled = true
-        if(isLocationPermissionGranted())
-            map.isMyLocationEnabled = true
 
         googleMap = map
+
+        googleMap?.setOnMarkerClickListener(this)
     }
 
     private fun initializeLocationServices() {
@@ -167,7 +161,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 try {
                     exception.startResolutionForResult(
                         activity,
-                        requestCheckSettingsId
+                        MainActivity.requestCheckSettingsId
                     )
                 } catch (sendEx: IntentSender.SendIntentException) {
                     // Ignore the error.
@@ -180,8 +174,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         googleMap?.animateCamera(
             CameraUpdateFactory.newLatLngZoom(
                 LatLng(
-                    lastLocation!!.latitude,
-                    lastLocation!!.longitude
+                    viewModel?.getLastLocation()?.value?.latitude!!,
+                    viewModel?.getLastLocation()?.value?.longitude!!
                 ), 15f
             )
         )
@@ -200,7 +194,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         buttonLocate = menuLayout.findViewById(R.id.button_locate)
         buttonLocate?.setOnClickListener {
-            if (!isLocationPermissionGranted()) {
+            if (viewModel?.isLocationPermissionGranted()?.value != true) {
                 requestLocationPermission()
             } else {
                 showLoader()
@@ -210,18 +204,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         loader = menuLayout.findViewById(R.id.progressBar_loader)
     }
 
-    private fun isLocationPermissionGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            context!!,
-            android.Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
     private fun requestLocationPermission() {
         ActivityCompat.requestPermissions(
             activity!!,
             arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
-            requestLocationId
+            MainActivity.requestPermissionId
         )
     }
 
@@ -247,16 +234,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == requestCheckSettingsId) {
-            if (resultCode != Activity.RESULT_OK) {
-                Toast.makeText(context, getString(R.string.locate_error), Toast.LENGTH_SHORT).show()
-                hideLoader()
-            }
-        }
-    }
-
     private fun showLoader() {
         loader?.visibility = View.VISIBLE
         buttonLocate?.visibility = View.GONE
@@ -267,18 +244,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         buttonLocate?.visibility = View.VISIBLE
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        when (requestCode) {
-            requestLocationId -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    if (googleMap != null)
-                        googleMap?.isMyLocationEnabled = true
-                }
-            }
-        }
+    override fun onMarkerClick(marker: Marker): Boolean {
+        val restaurant : Restaurant = marker.tag as Restaurant
+        viewModel?.setSelectedRestaurant(restaurant)
+
+        return false
     }
 }

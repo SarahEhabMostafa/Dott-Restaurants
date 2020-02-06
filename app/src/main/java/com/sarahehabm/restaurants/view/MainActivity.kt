@@ -1,23 +1,42 @@
 package com.sarahehabm.restaurants.view
 
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.sarahehabm.restaurants.R
+import com.sarahehabm.restaurants.databinding.MainActivityBinding
+import com.sarahehabm.restaurants.model.RestaurantsRepository
+import com.sarahehabm.restaurants.model.getNetworkService
 import com.sarahehabm.restaurants.view.map.MapFragment
+import com.sarahehabm.restaurants.viewmodel.MapViewModel
+import com.sarahehabm.restaurants.viewmodel.MapViewModelFactory
+import kotlinx.android.synthetic.main.bottom_sheet_details.*
 import kotlinx.android.synthetic.main.main_activity.*
 
 class MainActivity : AppCompatActivity() {
-    private var isPermissionGranted: Boolean = false
-    private val requestId = 12
+    companion object {
+        const val requestPermissionId = 12
+        const val requestCheckSettingsId = 13
+    }
+
+    private lateinit var binding: MainActivityBinding
+    private lateinit var viewModel: MapViewModel
+    private lateinit var viewModelFactory: MapViewModelFactory
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(com.sarahehabm.restaurants.R.layout.main_activity)
+        binding = DataBindingUtil.setContentView(this, R.layout.main_activity)
+
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                 .replace(R.id.container, MapFragment.newInstance())
@@ -25,32 +44,54 @@ class MainActivity : AppCompatActivity() {
         }
         setSupportActionBar(toolbar)
 
-        button_settings.setOnClickListener { getLocationPermission() }
+        val repository = RestaurantsRepository(getNetworkService())
+        viewModelFactory = MapViewModelFactory(repository)
+        viewModel = ViewModelProviders.of(this, viewModelFactory)
+            .get(MapViewModel::class.java)
 
-        if (ContextCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
+        viewModel.isLocationPermissionGranted().observe(this, Observer { isGranted ->
+            if (isGranted) {
+                container.visibility = View.VISIBLE
+                group.visibility = View.GONE
+            } else {
+                container.visibility = View.GONE
+                group.visibility = View.VISIBLE
+            }
+        })
+
+        binding.mapViewModel = viewModel
+        binding.lifecycleOwner = this
+
+        binding.buttonSettings.setOnClickListener { getLocationPermission() }
+
+        if (isLocationPermissionGranted()) {
             container.visibility = View.VISIBLE
         } else {
             getLocationPermission()
         }
+
+        val bottomsheet_behavior = BottomSheetBehavior.from(bottomsheet_parent)
+        bottomsheet_behavior.state = BottomSheetBehavior.STATE_HIDDEN
+
+        viewModel.getSelectedRestaurant().observe(this, Observer { restaurant ->
+            textView_name.text = restaurant.name
+            bottomsheet_behavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+        })
+    }
+
+    private fun isLocationPermissionGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            android.Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun getLocationPermission() {
-        isPermissionGranted = false
-        if (ContextCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        )
-            isPermissionGranted = true
-        else {
+        if (!isLocationPermissionGranted()) {
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
-                requestId
+                requestPermissionId
             )
         }
     }
@@ -60,32 +101,29 @@ class MainActivity : AppCompatActivity() {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        isPermissionGranted = false
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        var isPermissionGranted = false
 
         when (requestCode) {
-            requestId -> {
+            requestPermissionId -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
                     isPermissionGranted = true
             }
         }
 
-        if (isPermissionGranted) {
-            container.visibility = View.VISIBLE
-            group.visibility = View.GONE
-        } else {
-            container.visibility = View.GONE
-            group.visibility = View.VISIBLE
-        }
-
-        val frg = supportFragmentManager.findFragmentById(R.id.container)
-        frg?.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        viewModel.setLocationPermissionGranted(isPermissionGranted)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        val frg = supportFragmentManager.findFragmentById(R.id.container)
-        frg?.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == requestCheckSettingsId) {
+            if (resultCode != Activity.RESULT_OK) {
+                Toast.makeText(this, getString(R.string.locate_error), Toast.LENGTH_SHORT).show()
+                viewModel.setLocationSettingsEnabled(false)
+            } else {
+                viewModel.setLocationSettingsEnabled(true)
+            }
+        }
     }
 }
