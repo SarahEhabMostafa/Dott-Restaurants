@@ -26,11 +26,14 @@ class MapViewModel(
     private var _ne = MutableLiveData<Location>()
     private var _isLocationPermissionGranted = MutableLiveData<Boolean>()
     private var _isLocationSettingsEnabled = MutableLiveData<Boolean>()
+    private var _showLoader = MutableLiveData<Boolean>()
 
     fun loadRestaurants(ll: String, sw: String, ne: String) {
+        _showLoader.value = true
         viewModelScope.launch {
             try {
                 val res: Response<RestaurantsResponse> = repository.getRestaurants(ll, sw, ne)
+                _showLoader.value = false
                 if (res.isSuccessful) {
                     val tmpList = res.body()!!.response.venues
                     for (restaurant in tmpList) {
@@ -85,5 +88,10 @@ class MapViewModel(
     fun isLocationSettingsEnabled(): LiveData<Boolean> = _isLocationSettingsEnabled
     fun setLocationSettingsEnabled(isEnabled: Boolean) {
         _isLocationSettingsEnabled.value = isEnabled
+    }
+
+    fun isShowLoader(): LiveData<Boolean> = _showLoader
+    fun setShowLoader(isShow: Boolean) {
+        _showLoader.value = isShow
     }
 }

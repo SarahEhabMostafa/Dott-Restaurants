@@ -75,8 +75,6 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 }
 
                 clusterManager.cluster()
-
-                hideLoader()
             }
         )
 
@@ -95,7 +93,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 }
 
                 zoomToLocation(locationResult.locations[0].latitude, locationResult.locations[0].longitude)
-                showLoader()
+                viewModel?.setShowLoader(true)
             }
         }
 
@@ -115,8 +113,15 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
         viewModel?.isLocationSettingsEnabled()?.observe(viewLifecycleOwner, Observer { isEnabled ->
             if(!isEnabled) {
-                hideLoader()
+                viewModel?.setShowLoader(false)
             }
+        })
+
+        viewModel?.isShowLoader()?.observe(viewLifecycleOwner, Observer { isShow ->
+            if(isShow)
+                showLoader()
+            else
+                hideLoader()
         })
 
         return root
@@ -196,7 +201,6 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             if (viewModel?.isLocationPermissionGranted()?.value != true) {
                 requestLocationPermission()
             } else {
-                showLoader()
                 initializeLocationServices()
             }
         }
@@ -279,6 +283,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
         viewModel?.setSW(sw)
         viewModel?.setNE(ne)
         viewModel?.setLastLocation(loc)
+        viewModel?.setShowLoader(true)
 
         clusterManager.onCameraIdle()
     }
