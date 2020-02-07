@@ -79,7 +79,13 @@ class MapFragment : Fragment(), OnMapReadyCallback,
         )
 
         viewModel?.getError()?.observe(viewLifecycleOwner, Observer { error ->
-            val message = error?: getString(R.string.unknown_error)
+            val message = when (error) {
+                "-1" -> getString(R.string.connection_error)
+                null -> getString(R.string.unknown_error)
+                else -> {
+                    error
+                }
+            }
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         })
 

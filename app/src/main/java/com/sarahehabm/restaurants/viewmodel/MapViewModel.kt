@@ -11,6 +11,8 @@ import com.sarahehabm.restaurants.model.RestaurantsRepository
 import com.sarahehabm.restaurants.model.RestaurantsResponse
 import kotlinx.coroutines.launch
 import retrofit2.Response
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 class MapViewModel(
     private val repository: RestaurantsRepository,
@@ -46,13 +48,19 @@ class MapViewModel(
 
                     restaurantsList.postValue(ArrayList(_map.values))
                 } else {
-                    restaurantsList.postValue(restaurantsList.value)
-                    val errorResponse = Gson().fromJson(res.errorBody()?.string(), RestaurantsResponse::class.java)
+                    val errorResponse =
+                        Gson().fromJson(res.errorBody()?.string(), RestaurantsResponse::class.java)
                     _errorMessage.postValue(errorResponse.meta.errorDetail)
                 }
             } catch (e: Exception) {
-                restaurantsList.postValue(restaurantsList.value)
-                _errorMessage.postValue(null)
+                when (e) {
+                    is UnknownHostException -> _errorMessage.postValue("-1")
+                    is SocketTimeoutException -> _errorMessage.postValue("-1")
+                    else -> {
+                        _errorMessage.postValue(null)
+                    }
+                }
+
                 _showLoader.value = false
             }
         }
