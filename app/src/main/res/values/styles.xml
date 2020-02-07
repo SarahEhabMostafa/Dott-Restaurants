@@ -8,12 +8,12 @@
 
     <style name="TextView_NormalStyle" parent="Widget.AppCompat.TextView">
         <item name="android:textColor">@color/colorPrimary</item>
-        <item name="android:textSize">@dimen/fontsize</item>
+        <item name="android:textSize">@dimen/font_size</item>
     </style>
 
     <style name="TextView_TitleStyle" parent="Widget.AppCompat.TextView">
         <item name="android:textColor">@color/colorAccent</item>
-        <item name="android:textSize">@dimen/fontsize_title</item>
+        <item name="android:textSize">@dimen/font_size_title</item>
         <item name="android:textStyle">bold</item>
     </style>
 </resources>

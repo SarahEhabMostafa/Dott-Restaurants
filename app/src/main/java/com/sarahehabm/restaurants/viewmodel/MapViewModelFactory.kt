@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.sarahehabm.restaurants.model.RestaurantsRepository
 
-class MapViewModelFactory(private val repository: RestaurantsRepository, private val ll: String="") :
+class MapViewModelFactory(private val repository: RestaurantsRepository) :
     ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {

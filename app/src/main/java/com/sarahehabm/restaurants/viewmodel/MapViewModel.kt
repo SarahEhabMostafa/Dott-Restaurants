@@ -76,13 +76,11 @@ class MapViewModel(
         _location.value = location
     }
 
-    fun getSW(): LiveData<Location> = _sw
     fun getSWString(): String = "${_sw.value?.latitude},${_sw.value?.longitude}"
     fun setSW(location: Location) {
         _sw.value = location
     }
 
-    fun getNE(): LiveData<Location> = _ne
     fun getNEString(): String = "${_ne.value?.latitude},${_ne.value?.longitude}"
     fun setNE(location: Location) {
         _ne.value = location
