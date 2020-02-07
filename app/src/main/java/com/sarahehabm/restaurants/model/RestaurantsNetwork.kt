@@ -12,6 +12,7 @@ const val SEARCH_INTENT = "browse"
 const val CLIENT_ID = "XLOLYTGNGMOITN2BNJSOH4XWGF4ETG3HTSIXBXQDBBBOEJXN"
 const val CLIENT_SECRET = "0OFBFJTGNR35AK1SC0G4JRPM5BPNJSGEW25T0E4Q20OWHXYQ"
 const val VERSION = "20200201"
+const val LIMIT = "50"
 const val CATEGORY_ID = "4d4b7105d754a06374d81259"
 
 private val service: RestaurantsNetwork by lazy {
@@ -44,6 +45,7 @@ interface RestaurantsNetwork {
         @Query("client_id") clientId: String = CLIENT_ID,
         @Query("client_secret") clientSecret: String = CLIENT_SECRET,
         @Query("v") v: String = VERSION,
+        @Query("limit") limit: String = LIMIT,
         @Query("categoryId") categoryId: String = CATEGORY_ID
     ): Response<RestaurantsResponse>
 }
