@@ -45,7 +45,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     private var loader: ProgressBar? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
-    private lateinit var clusterManager: ClusterManager<Restaurant>
+    private var clusterManager: ClusterManager<Restaurant>? = null
     private val locationRequest: LocationRequest = LocationRequest.create().apply {
         interval = 5000
         fastestInterval = 60000
@@ -72,11 +72,13 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 size = value?.size ?: 0
                 Log.v("RESPONSE", "List received with size $size")
 
-                if(value != null) {
-                    clusterManager.addItems(value)
-                }
+                if(clusterManager != null) {
+                    if (value != null) {
+                        clusterManager!!.addItems(value)
+                    }
 
-                clusterManager.cluster()
+                    clusterManager!!.cluster()
+                }
             }
         )
 
@@ -139,10 +141,10 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
     private fun setupClusterManager() {
         clusterManager = ClusterManager(activity, googleMap)
-        clusterManager.setAnimation(true)
+        clusterManager!!.setAnimation(true)
 
-        clusterManager.setOnClusterItemClickListener(this)
-        clusterManager.setOnClusterClickListener(this)
+        clusterManager!!.setOnClusterItemClickListener(this)
+        clusterManager!!.setOnClusterClickListener(this)
     }
 
     private fun initializeLocationServices() {
@@ -281,6 +283,6 @@ class MapFragment : Fragment(), OnMapReadyCallback,
         viewModel?.setLastLocation(loc)
         viewModel?.setShowLoader(true)
 
-        clusterManager.onCameraIdle()
+        clusterManager?: clusterManager!!.onCameraIdle()
     }
 }
