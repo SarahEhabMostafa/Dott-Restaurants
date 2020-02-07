@@ -145,6 +145,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
         clusterManager!!.setOnClusterItemClickListener(this)
         clusterManager!!.setOnClusterClickListener(this)
+
+        clusterManager!!.renderer = RestaurantsClusterRenderer(context!!, googleMap, clusterManager)
     }
 
     private fun initializeLocationServices() {
