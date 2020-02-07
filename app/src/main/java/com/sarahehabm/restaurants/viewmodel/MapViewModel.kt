@@ -11,8 +11,14 @@ import com.sarahehabm.restaurants.model.RestaurantsResponse
 import kotlinx.coroutines.launch
 import retrofit2.Response
 
-class MapViewModel(private val repository: RestaurantsRepository, ll: String, sw: String, ne: String) : ViewModel() {
+class MapViewModel(
+    private val repository: RestaurantsRepository,
+    ll: String,
+    sw: String,
+    ne: String
+) : ViewModel() {
     private var restaurantsList = MutableLiveData<ArrayList<Restaurant>>()
+    private var _map = HashMap<String, Restaurant>()
 
     private var _selectedRestaurant = MutableLiveData<Restaurant>()
     private var _location = MutableLiveData<Location>()
@@ -26,17 +32,14 @@ class MapViewModel(private val repository: RestaurantsRepository, ll: String, sw
             try {
                 val res: Response<RestaurantsResponse> = repository.getRestaurants(ll, sw, ne)
                 if (res.isSuccessful) {
-                    val tmpList =  res.body()!!.response.venues
-                    if(restaurantsList.value == null){
-                        restaurantsList.value = tmpList
-                    } else {
-                        for (restaurant in tmpList) {
-                            when(restaurantsList.value?.contains(restaurant)){
-                                false -> restaurantsList.value!!.add(restaurant)
-                            }
+                    val tmpList = res.body()!!.response.venues
+                    for (restaurant in tmpList) {
+                        if (!_map.containsKey(restaurant.id)) {
+                            _map[restaurant.id] = restaurant
                         }
                     }
-                    restaurantsList.postValue(restaurantsList.value)
+
+                    restaurantsList.postValue(ArrayList(_map.values))
                 } else {
                     //TODO handle failure
                     restaurantsList.postValue(restaurantsList.value)

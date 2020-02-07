@@ -20,16 +20,18 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.tasks.Task
+import com.google.maps.android.clustering.Cluster
+import com.google.maps.android.clustering.ClusterManager
 import com.sarahehabm.restaurants.R
 import com.sarahehabm.restaurants.model.Restaurant
 import com.sarahehabm.restaurants.view.MainActivity
 import com.sarahehabm.restaurants.viewmodel.MapViewModel
+import kotlin.math.floor
 
-class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener,
-    GoogleMap.OnCameraIdleListener {
+class MapFragment : Fragment(), OnMapReadyCallback,
+    GoogleMap.OnCameraIdleListener, ClusterManager.OnClusterItemClickListener<Restaurant>,
+    ClusterManager.OnClusterClickListener<Restaurant> {
 
     companion object {
         fun newInstance() = MapFragment()
@@ -41,6 +43,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
     private var loader: ProgressBar? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
+    private lateinit var clusterManager: ClusterManager<Restaurant>
     private val locationRequest: LocationRequest = LocationRequest.create().apply {
         interval = 5000
         fastestInterval = 60000
@@ -65,25 +68,13 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
             Observer<ArrayList<Restaurant>> { value ->
                 Log.v("RESPONSE", "Empty list? " + (value?.isEmpty() ?: "null"))
                 size = value?.size ?: 0
-                Toast.makeText(
-                    context, "List received with size $size",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Log.v("RESPONSE", "List received with size $size")
 
                 if(value != null) {
-                    for (restaurant in value) {
-                        val latLng = LatLng(
-                            restaurant.location.lat.toDouble(),
-                            restaurant.location.lng.toDouble()
-                        )
-
-                        val marker = googleMap?.addMarker(
-                            MarkerOptions().position(latLng)
-                        )
-
-                        marker?.tag = restaurant
-                    }
+                    clusterManager.addItems(value)
                 }
+
+                clusterManager.cluster()
 
                 hideLoader()
             }
@@ -141,9 +132,18 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
         map.uiSettings.isRotateGesturesEnabled = true
 
         googleMap = map
+        setupClusterManager()
 
-        googleMap?.setOnMarkerClickListener(this)
         googleMap?.setOnCameraIdleListener(this)
+        googleMap?.setOnMarkerClickListener(clusterManager)
+    }
+
+    private fun setupClusterManager() {
+        clusterManager = ClusterManager(activity, googleMap)
+        clusterManager.setAnimation(true)
+
+        clusterManager.setOnClusterItemClickListener(this)
+        clusterManager.setOnClusterClickListener(this)
     }
 
     private fun initializeLocationServices() {
@@ -243,20 +243,25 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
         buttonLocate?.visibility = View.VISIBLE
     }
 
-    override fun onMarkerClick(marker: Marker): Boolean {
-        val restaurant : Restaurant = marker.tag as Restaurant
+    override fun onClusterItemClick(restaurant: Restaurant): Boolean {
         viewModel?.setSelectedRestaurant(restaurant)
 
-        return false
+        return true
+    }
+
+    override fun onClusterClick(cluster: Cluster<Restaurant>): Boolean {
+        googleMap?.animateCamera(
+            CameraUpdateFactory.newLatLngZoom(
+                cluster.position,
+                floor((googleMap?.cameraPosition?.zoom?.plus(1)!!))
+            ), 300, null
+        )
+
+        return true
     }
 
     override fun onCameraIdle() {
         Log.i("MAP", "Map is now settled with a center of " + googleMap?.cameraPosition?.target)
-//        Toast.makeText(
-//            context,
-//            "Map is now settled with a center of " + googleMap?.cameraPosition?.target,
-//            Toast.LENGTH_SHORT
-//        ).show()
 
         val loc = Location("")
         loc.latitude = googleMap?.cameraPosition?.target?.latitude!!
@@ -274,5 +279,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListe
         viewModel?.setSW(sw)
         viewModel?.setNE(ne)
         viewModel?.setLastLocation(loc)
+
+        clusterManager.onCameraIdle()
     }
 }
