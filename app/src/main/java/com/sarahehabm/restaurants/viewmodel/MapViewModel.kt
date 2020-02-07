@@ -58,13 +58,13 @@ class MapViewModel(private val repository: RestaurantsRepository, ll: String, sw
     }
 
     fun getSW(): LiveData<Location> = _sw
-    fun getSWString(): String = "${_sw.value?.longitude},${_sw.value?.latitude}"
+    fun getSWString(): String = "${_sw.value?.latitude},${_sw.value?.longitude}"
     fun setSW(location: Location) {
         _sw.value = location
     }
 
     fun getNE(): LiveData<Location> = _ne
-    fun getNEString(): String = "${_ne.value?.longitude},${_ne.value?.latitude}"
+    fun getNEString(): String = "${_ne.value?.latitude},${_ne.value?.longitude}"
     fun setNE(location: Location) {
         _ne.value = location
     }
