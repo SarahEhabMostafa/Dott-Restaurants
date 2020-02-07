@@ -2,23 +2,26 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/bottomsheet_parent"
+    android:id="@+id/bottom_sheet_parent"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:layout_marginTop="?actionBarSize"
-    android:background="@android:color/white"
+    android:background="@drawable/bg_bottom_sheet"
     android:clickable="true"
+    android:elevation="@dimen/margin_16"
     android:focusable="true"
     android:padding="@dimen/margin_16"
     app:behavior_hideable="true"
     app:behavior_peekHeight="@dimen/bottom_sheet_peek_height"
-    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+    tools:targetApi="lollipop">
 
     <TextView
         android:id="@+id/textView_name"
         style="@style/TextView_TitleStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="start|center_vertical"
         android:padding="@dimen/margin_16"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -28,27 +31,68 @@
         tools:text="Name" />
 
     <TextView
-        android:id="@+id/textView_location"
+        android:id="@+id/textView_address"
         style="@style/TextView_NormalStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:gravity="start"
         app:layout_constraintEnd_toEndOf="@+id/textView_name"
         app:layout_constraintHorizontal_bias="0.05"
         app:layout_constraintStart_toStartOf="@+id/textView_name"
         app:layout_constraintTop_toBottomOf="@+id/textView_name"
         app:layout_constraintVertical_bias="0.10"
-        tools:text="Location" />
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="Address" />
 
     <TextView
-        android:id="@+id/textView_address"
+        android:id="@+id/textView_crossStreet"
         style="@style/TextView_NormalStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/textView_location"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/textView_location"
-        app:layout_constraintTop_toBottomOf="@+id/textView_location"
-        app:layout_constraintVertical_bias="0.02"
-        tools:text="Full Address" />
+        android:gravity="start"
+        app:layout_constraintBottom_toTopOf="@+id/textView_city"
+        app:layout_constraintHorizontal_bias="0.05"
+        app:layout_constraintStart_toStartOf="@id/textView_address"
+        app:layout_constraintTop_toBottomOf="@id/textView_address"
+        app:layout_constraintVertical_bias="0.0"
+        tools:text="Cross Street" />
+
+    <TextView
+        android:id="@+id/textView_city"
+        style="@style/TextView_NormalStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        app:layout_constraintBottom_toTopOf="@+id/textView_state"
+        app:layout_constraintHorizontal_bias="0.05"
+        app:layout_constraintStart_toStartOf="@id/textView_crossStreet"
+        app:layout_constraintTop_toBottomOf="@+id/textView_crossStreet"
+        app:layout_constraintVertical_bias="0.0"
+        tools:text="City" />
+
+    <TextView
+        android:id="@+id/textView_state"
+        style="@style/TextView_NormalStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        app:layout_constraintBottom_toTopOf="@+id/textView_country"
+        app:layout_constraintHorizontal_bias="0.05"
+        app:layout_constraintStart_toStartOf="@id/textView_city"
+        app:layout_constraintTop_toBottomOf="@+id/textView_city"
+        app:layout_constraintVertical_bias="0.0"
+        tools:text="State" />
+
+    <TextView
+        android:id="@+id/textView_country"
+        style="@style/TextView_NormalStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        app:layout_constraintHorizontal_bias="0.05"
+        app:layout_constraintStart_toStartOf="@id/textView_state"
+        app:layout_constraintTop_toBottomOf="@+id/textView_state"
+        app:layout_constraintVertical_bias="0.0"
+        tools:text="Country" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

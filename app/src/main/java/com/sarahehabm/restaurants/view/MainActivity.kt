@@ -22,6 +22,7 @@ import com.sarahehabm.restaurants.view.map.MapFragment
 import com.sarahehabm.restaurants.viewmodel.MapViewModel
 import com.sarahehabm.restaurants.viewmodel.MapViewModelFactory
 import kotlinx.android.synthetic.main.bottom_sheet_details.*
+import kotlinx.android.synthetic.main.bottom_sheet_details.view.*
 import kotlinx.android.synthetic.main.main_activity.*
 
 class MainActivity : AppCompatActivity() {
@@ -71,19 +72,63 @@ class MainActivity : AppCompatActivity() {
             getLocationPermission()
         }
 
-        val bottomsheet_behavior = BottomSheetBehavior.from(bottomsheet_parent)
-        bottomsheet_behavior.state = BottomSheetBehavior.STATE_HIDDEN
+        val bottomSheetBehavior = BottomSheetBehavior.from(bottom_sheet_parent)
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
 
         viewModel.getSelectedRestaurant().observe(this, Observer { restaurant ->
             textView_name.text = restaurant.name
-            textView_address.text = restaurant.location.formattedAddress.toString()
-            textView_location.text = getString(
-                R.string.latlng_formatted,
-                restaurant.location.lat,
-                restaurant.location.lng
-            )
-            bottomsheet_behavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+            val location = restaurant.location
+
+            if (location.address == null || location.address!!.isEmpty())
+                textView_address.visibility = View.GONE
+            else {
+                textView_address.text = location.address
+                textView_address.visibility = View.VISIBLE
+            }
+
+            if (location.crossStreet == null || location.crossStreet!!.isEmpty())
+                textView_crossStreet.visibility = View.GONE
+            else {
+                textView_crossStreet.text = location.crossStreet
+                textView_crossStreet.visibility = View.VISIBLE
+            }
+
+            if (location.city == null || location.city!!.isEmpty())
+                textView_city.visibility = View.GONE
+            else {
+                textView_city.text = location.city
+                textView_city.visibility = View.VISIBLE
+            }
+
+            if (location.state == null || location.state!!.isEmpty())
+                textView_state.visibility = View.GONE
+            else {
+                textView_state.text = location.state
+                textView_state.visibility = View.VISIBLE
+            }
+
+            if (location.country == null || location.country!!.isEmpty())
+                textView_country.visibility = View.GONE
+            else {
+                textView_country.text = location.country
+                textView_country.visibility = View.VISIBLE
+            }
+
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
         })
+
+        bottom_sheet_parent.textView_name.setOnClickListener { v ->
+            when (bottomSheetBehavior.state) {
+                BottomSheetBehavior.STATE_EXPANDED ->
+                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+
+                BottomSheetBehavior.STATE_COLLAPSED -> bottomSheetBehavior.state =
+                    BottomSheetBehavior.STATE_HALF_EXPANDED
+
+                BottomSheetBehavior.STATE_HALF_EXPANDED -> bottomSheetBehavior.state =
+                    BottomSheetBehavior.STATE_EXPANDED
+            }
+        }
 
         viewModel.getError().observe(this, Observer { error ->
             val message = when (error) {
