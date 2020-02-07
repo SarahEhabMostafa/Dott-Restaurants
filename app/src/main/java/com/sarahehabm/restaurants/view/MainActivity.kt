@@ -13,6 +13,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.snackbar.Snackbar
 import com.sarahehabm.restaurants.R
 import com.sarahehabm.restaurants.databinding.MainActivityBinding
 import com.sarahehabm.restaurants.model.RestaurantsRepository
@@ -82,6 +83,17 @@ class MainActivity : AppCompatActivity() {
                 restaurant.location.lng
             )
             bottomsheet_behavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+        })
+
+        viewModel.getError().observe(this, Observer { error ->
+            val message = when (error) {
+                "-1" -> getString(R.string.connection_error)
+                null -> getString(R.string.unknown_error)
+                else -> {
+                    error
+                }
+            }
+            Snackbar.make(coordinator_layout, message, Snackbar.LENGTH_SHORT).show()
         })
     }
 

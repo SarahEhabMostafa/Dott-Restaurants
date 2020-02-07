@@ -21,12 +21,14 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.tasks.Task
+import com.google.android.material.snackbar.Snackbar
 import com.google.maps.android.clustering.Cluster
 import com.google.maps.android.clustering.ClusterManager
 import com.sarahehabm.restaurants.R
 import com.sarahehabm.restaurants.model.Restaurant
 import com.sarahehabm.restaurants.view.MainActivity
 import com.sarahehabm.restaurants.viewmodel.MapViewModel
+import kotlinx.android.synthetic.main.map_fragment.*
 import kotlin.math.floor
 
 class MapFragment : Fragment(), OnMapReadyCallback,
@@ -78,30 +80,11 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             }
         )
 
-        viewModel?.getError()?.observe(viewLifecycleOwner, Observer { error ->
-            val message = when (error) {
-                "-1" -> getString(R.string.connection_error)
-                null -> getString(R.string.unknown_error)
-                else -> {
-                    error
-                }
-            }
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-        })
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(context!!)
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult?) {
                 locationResult ?: return
-
-                for (location in locationResult.locations) {
-                    Toast.makeText(
-                        context!!,
-                        "Received " + locationResult.locations.size + " locations",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
 
                 zoomToLocation(locationResult.locations[0].latitude, locationResult.locations[0].longitude)
                 viewModel?.setShowLoader(true)
@@ -181,8 +164,10 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                         MainActivity.requestCheckSettingsId
                     )
                 } catch (sendEx: IntentSender.SendIntentException) {
-                    // Ignore the error.
+                    Snackbar.make(map, R.string.unknown_error, Snackbar.LENGTH_SHORT).show()
                 }
+            } else {
+                Snackbar.make(map, R.string.unknown_error, Snackbar.LENGTH_SHORT).show()
             }
         }
     }
