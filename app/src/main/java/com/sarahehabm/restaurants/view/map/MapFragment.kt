@@ -78,6 +78,11 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             }
         )
 
+        viewModel?.getError()?.observe(viewLifecycleOwner, Observer { error ->
+            val message = error?: getString(R.string.unknown_error)
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        })
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(context!!)
 
         locationCallback = object : LocationCallback() {

@@ -6,4 +6,5 @@
     <string name="getting_location">Getting your location</string>
     <string name="locate_error">Unable to locate. Please try again later.</string>
     <string name="latlng_formatted">(%1$f, %2$f)</string>
+    <string name="unknown_error">An unknown error has occurred, please try again later</string>
 </resources>

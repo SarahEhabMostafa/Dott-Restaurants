@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.sarahehabm.restaurants.model.Restaurant
 import com.sarahehabm.restaurants.model.RestaurantsRepository
 import com.sarahehabm.restaurants.model.RestaurantsResponse
@@ -19,6 +20,7 @@ class MapViewModel(
 ) : ViewModel() {
     private var restaurantsList = MutableLiveData<ArrayList<Restaurant>>()
     private var _map = HashMap<String, Restaurant>()
+    private var _errorMessage = MutableLiveData<String>()
 
     private var _selectedRestaurant = MutableLiveData<Restaurant>()
     private var _location = MutableLiveData<Location>()
@@ -44,18 +46,24 @@ class MapViewModel(
 
                     restaurantsList.postValue(ArrayList(_map.values))
                 } else {
-                    //TODO handle failure
                     restaurantsList.postValue(restaurantsList.value)
+                    val errorResponse = Gson().fromJson(res.errorBody()?.string(), RestaurantsResponse::class.java)
+                    _errorMessage.postValue(errorResponse.meta.errorDetail)
                 }
             } catch (e: Exception) {
-                //TODO handle failure
                 restaurantsList.postValue(restaurantsList.value)
+                _errorMessage.postValue(null)
+                _showLoader.value = false
             }
         }
     }
 
     fun getRestaurants(): LiveData<ArrayList<Restaurant>> {
         return restaurantsList
+    }
+
+    fun getError(): LiveData<String> {
+        return _errorMessage
     }
 
     fun getLastLocation(): LiveData<Location> = _location
