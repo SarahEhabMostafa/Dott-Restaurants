@@ -9,7 +9,7 @@ class MapViewModelFactory(private val repository: RestaurantsRepository, private
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MapViewModel::class.java)) {
-            return MapViewModel(repository, ll, "", "") as T
+            return MapViewModel(repository) as T
         }
 
         throw IllegalArgumentException("Unknown ViewModel type")

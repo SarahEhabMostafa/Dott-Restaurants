@@ -15,10 +15,7 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
 class MapViewModel(
-    private val repository: RestaurantsRepository,
-    ll: String,
-    sw: String,
-    ne: String
+    private val repository: RestaurantsRepository
 ) : ViewModel() {
     private var restaurantsList = MutableLiveData<ArrayList<Restaurant>>()
     private var _map = HashMap<String, Restaurant>()
