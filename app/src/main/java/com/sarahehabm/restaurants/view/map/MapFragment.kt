@@ -47,8 +47,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     private lateinit var locationCallback: LocationCallback
     private var clusterManager: ClusterManager<Restaurant>? = null
     private val locationRequest: LocationRequest = LocationRequest.create().apply {
-        interval = 5000
-        fastestInterval = 60000
+        interval = 60000
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
     }
 
