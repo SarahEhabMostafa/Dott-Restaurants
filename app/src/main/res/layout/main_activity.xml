@@ -73,6 +73,6 @@
                 app:constraint_referenced_ids="button_settings,textView" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <include layout="@layout/bottom_sheet_details" />
+        <include layout="@layout/layout_bottom_sheet_details" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

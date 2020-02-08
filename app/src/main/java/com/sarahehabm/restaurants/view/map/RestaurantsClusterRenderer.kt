@@ -10,6 +10,10 @@ import com.google.maps.android.clustering.ClusterManager
 import com.google.maps.android.clustering.view.DefaultClusterRenderer
 import com.sarahehabm.restaurants.model.Restaurant
 
+/*
+* A custom cluster renderer class that changes the color of the clusters to black
+* and the marker icons to ic_marker
+* */
 class RestaurantsClusterRenderer(
     private val context: Context,
     map: GoogleMap?,
