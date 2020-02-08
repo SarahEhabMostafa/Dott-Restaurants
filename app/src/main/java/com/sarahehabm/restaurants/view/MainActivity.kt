@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -182,7 +181,7 @@ class MainActivity : AppCompatActivity() {
 
         if (requestCode == requestCheckSettingsId) {
             if (resultCode != Activity.RESULT_OK) {
-                Toast.makeText(this, getString(R.string.locate_error), Toast.LENGTH_SHORT).show()
+                Snackbar.make(coordinator_layout, R.string.locate_error, Snackbar.LENGTH_SHORT).show()
                 viewModel.setLocationSettingsEnabled(false)
             } else {
                 viewModel.setLocationSettingsEnabled(true)
