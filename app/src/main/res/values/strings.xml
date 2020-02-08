@@ -6,4 +6,5 @@
     <string name="locate_error">Unable to locate. Please try again later.</string>
     <string name="unknown_error">Something went wrong, please try again later</string>
     <string name="connection_error">Looks like something\'s wrong with your connection, please try again later</string>
+    <string name="missing_permission_error">Go to settings and enable the location permission to be able to see the restaurants</string>
 </resources>

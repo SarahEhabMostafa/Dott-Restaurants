@@ -3,6 +3,7 @@ package com.sarahehabm.restaurants.view
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
@@ -26,6 +27,7 @@ import kotlinx.android.synthetic.main.layout_bottom_sheet_details.*
 import kotlinx.android.synthetic.main.layout_bottom_sheet_details.view.*
 import kotlinx.android.synthetic.main.main_activity.*
 
+
 /*
 * The Main activity of the application. It holds the MapFragment, viewModel and a bottom sheet
 * */
@@ -45,12 +47,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //Initializing the binding variable
-        binding = DataBindingUtil.setContentView(this, R.layout.main_activity)
+        binding = DataBindingUtil.setContentView(this, com.sarahehabm.restaurants.R.layout.main_activity)
 
         //Creating and setting a MapFragment
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                .replace(R.id.container, MapFragment.newInstance())
+                .replace(com.sarahehabm.restaurants.R.id.container, MapFragment.newInstance())
                 .commitNow()
         }
         //Setting the toolbar
@@ -122,8 +124,8 @@ class MainActivity : AppCompatActivity() {
         // the API call or an exception is thrown
         viewModel.getError().observe(this, Observer { error ->
             val message = when (error) {
-                "-1" -> getString(R.string.connection_error)
-                null -> getString(R.string.unknown_error)
+                "-1" -> getString(com.sarahehabm.restaurants.R.string.connection_error)
+                null -> getString(com.sarahehabm.restaurants.R.string.unknown_error)
                 else -> {
                     error
                 }
@@ -212,6 +214,16 @@ class MainActivity : AppCompatActivity() {
             requestPermissionId -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
                     isPermissionGranted = true
+                else {
+                    isPermissionGranted = false
+                    var showDialog: Boolean = false
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        showDialog = shouldShowRequestPermissionRationale(permissions[0])
+                    }
+
+                    if(!showDialog)
+                        Snackbar.make(container, R.string.missing_permission_error, Snackbar.LENGTH_SHORT).show()
+                }
             }
         }
 
@@ -228,7 +240,7 @@ class MainActivity : AppCompatActivity() {
 
         if (requestCode == requestCheckSettingsId) {
             if (resultCode != Activity.RESULT_OK) {
-                Snackbar.make(coordinator_layout, R.string.locate_error, Snackbar.LENGTH_SHORT)
+                Snackbar.make(coordinator_layout, com.sarahehabm.restaurants.R.string.locate_error, Snackbar.LENGTH_SHORT)
                     .show()
                 viewModel.setLocationSettingsEnabled(false)
             } else {
