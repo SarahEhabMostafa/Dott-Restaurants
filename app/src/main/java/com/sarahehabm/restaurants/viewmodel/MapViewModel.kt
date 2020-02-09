@@ -97,6 +97,13 @@ class MapViewModel(
     }
 
     /*
+    * Set function that returns sets live data [Restaurant] object
+    * */
+    fun setRestaurants(list: ArrayList<Restaurant>) {
+        restaurantsList = MutableLiveData(list)
+    }
+
+    /*
     * Get function that returns the live data "Error Message" value
     * */
     fun getError(): LiveData<String> {
